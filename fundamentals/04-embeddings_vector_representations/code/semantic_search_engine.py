@@ -1,4 +1,4 @@
-from embedding import SimpleEmbedder
+from simple_embedder import SimpleEmbedder
 from index_with_brute_force import VectorIndex
 from chunking import chunk_text
 

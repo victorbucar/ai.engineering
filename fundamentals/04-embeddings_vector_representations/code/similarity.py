@@ -15,3 +15,10 @@ def dot_product(a, b):
 
 def euclidean_distance(a, b):
     return float(np.linalg.norm(a - b))
+
+def binary_quantize(v):
+    return (np.asarray(v) > 0).astype(np.uint8)
+
+
+def hamming_distance(a, b):
+    return int(np.count_nonzero(binary_quantize(a) != binary_quantize(b)))

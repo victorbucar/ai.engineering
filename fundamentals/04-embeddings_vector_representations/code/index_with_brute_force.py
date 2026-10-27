@@ -1,4 +1,4 @@
-from similarity import cosine_similarity, dot_product, euclidean_distance
+from similarity import cosine_similarity, dot_product, euclidean_distance, hamming_distance
 
 class VectorIndex:
     def __init__(self):
@@ -20,6 +20,8 @@ class VectorIndex:
                 score = dot_product(query_vector, vec)
             elif metric == "euclidean":
                 score = -euclidean_distance(query_vector, vec)
+            elif metric == "hamming":
+                score = -hamming_distance(query_vector, vec)
             else:
                 raise ValueError(f"Unknown metric: {metric}")
             scores.append((i, score))
