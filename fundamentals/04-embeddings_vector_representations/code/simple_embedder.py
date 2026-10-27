@@ -3,6 +3,8 @@ import numpy as np
 from collections import Counter
 
 class SimpleEmbedder:
+    name = "tfidf"
+
     def __init__(self):
         self.vocab = []
         self.idf = []
@@ -19,6 +21,10 @@ class SimpleEmbedder:
         for i, word in enumerate(self.vocab):
             doc_count = sum(1 for doc in documents if word in doc.lower().split())
             self.idf[i] = math.log((n + 1) / (doc_count + 1)) + 1
+
+    @property
+    def dimensions(self):
+        return len(self.vocab)
 
     def embed(self, text):
         words = text.lower().split()

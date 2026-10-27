@@ -1,8 +1,10 @@
 import math
+import sys
 import numpy as np
 from chunking import chunk_text, chunk_by_sentences
 from similarity import cosine_similarity, dot_product, euclidean_distance
 from simple_embedder import SimpleEmbedder
+from embedders import choose_embedder
 from semantic_search_engine import SemanticSearchEngine
 from metrics_comparer import compare_metrics
 
@@ -62,6 +64,9 @@ SAMPLE_DOCUMENTS = [
 
 
 if __name__ == "__main__":
+    Embedder = choose_embedder(sys.argv[1] if len(sys.argv) > 1 else None)
+    print(f"\nUsing embedder: {Embedder.name}\n")
+
     print("=" * 60)
     print("STEP 1: Document Chunking")
     print("=" * 60)
@@ -90,11 +95,12 @@ if __name__ == "__main__":
         "Payment transaction was declined by the bank",
         "My credit card charge did not go through"
     ]
-    embedder = SimpleEmbedder()
+    embedder = Embedder()
     embedder.fit(mini_docs)
     embeddings = embedder.embed_batch(mini_docs)
 
-    print(f"  Vocabulary size: {len(embedder.vocab)}")
+    if hasattr(embedder, "vocab"):
+        print(f"  Vocabulary size: {len(embedder.vocab)}")
     print(f"  Embedding dimensions: {len(embeddings[0])}")
     print(f"  Non-zero entries per embedding:")
     for i, emb in enumerate(embeddings):
@@ -125,7 +131,7 @@ if __name__ == "__main__":
     print("STEP 4: Semantic Search Engine")
     print("=" * 60)
 
-    engine = SemanticSearchEngine(chunk_size=50, overlap=10)
+    engine = SemanticSearchEngine(chunk_size=50, overlap=10, embedder=Embedder())
     source_names = [
         "refund-policy.md",
         "product-overview.md",
@@ -135,8 +141,9 @@ if __name__ == "__main__":
     ]
     num_chunks = engine.index_documents(SAMPLE_DOCUMENTS, source_names)
     print(f"  Indexed {len(SAMPLE_DOCUMENTS)} documents into {num_chunks} chunks")
-    print(f"  Vocabulary size: {len(engine.embedder.vocab)} terms")
-    print(f"  Embedding dimensions: {len(engine.embedder.vocab)}")
+    if hasattr(engine.embedder, "vocab"):
+        print(f"  Vocabulary size: {len(engine.embedder.vocab)} terms")
+    print(f"  Embedding dimensions: {engine.embedder.dimensions}")
 
     queries = [
         "What is the refund policy for enterprise customers?",
@@ -168,7 +175,7 @@ if __name__ == "__main__":
     print("STEP 6: Embedding Truncation (Matryoshka Simulation)")
     print("=" * 60)
 
-    full_dim = len(engine.embedder.vocab)
+    full_dim = engine.embedder.dimensions
     query_full = engine.embedder.embed("refund policy enterprise")
     doc_full = engine.embedder.embed(SAMPLE_DOCUMENTS[0][:200])
 
@@ -209,7 +216,7 @@ if __name__ == "__main__":
 
     test_query = "What is the refund policy for enterprise customers?"
     for chunk_size in [20, 50, 100, 200]:
-        eng = SemanticSearchEngine(chunk_size=chunk_size, overlap=max(5, chunk_size // 5))
+        eng = SemanticSearchEngine(chunk_size=chunk_size, overlap=max(5, chunk_size // 5), embedder=Embedder())
         n = eng.index_documents(SAMPLE_DOCUMENTS)
         results = eng.search(test_query, top_k=3)
         top_score = results[0]["score"] if results else 0
@@ -220,10 +227,12 @@ if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("SUMMARY")
     print("=" * 60)
+    print(f"  Embedder: {engine.embedder.name}")
     print(f"  Documents indexed: {len(SAMPLE_DOCUMENTS)}")
     print(f"  Total chunks: {num_chunks}")
-    print(f"  Vocabulary size: {len(engine.embedder.vocab)}")
-    print(f"  Embedding dimensions: {len(engine.embedder.vocab)}")
+    if hasattr(engine.embedder, "vocab"):
+        print(f"  Vocabulary size: {len(engine.embedder.vocab)}")
+    print(f"  Embedding dimensions: {engine.embedder.dimensions}")
     print("  Metrics implemented: cosine, dot product, euclidean, hamming")
     print("  Chunking: fixed-size + sentence-based")
     print("  Advanced: Matryoshka truncation, binary quantization")

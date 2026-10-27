@@ -3,8 +3,8 @@ from index_with_brute_force import VectorIndex
 from chunking import chunk_text
 
 class SemanticSearchEngine:
-    def __init__(self, chunk_size=200, overlap=50):
-        self.embedder = SimpleEmbedder()
+    def __init__(self, chunk_size=200, overlap=50, embedder=None):
+        self.embedder = embedder or SimpleEmbedder()
         self.index = VectorIndex()
         self.chunk_size = chunk_size
         self.overlap = overlap
@@ -18,8 +18,8 @@ class SemanticSearchEngine:
             name = source_names[i] if source_names else f"doc_{i}"
             all_sources.extend([name] * len(chunks))
         self.embedder.fit(all_chunks)
-        for chunk, source in zip(all_chunks, all_sources):
-            vec = self.embedder.embed(chunk)
+        vecs = self.embedder.embed_batch(all_chunks)
+        for vec, chunk, source in zip(vecs, all_chunks, all_sources):
             self.index.add(vec, chunk, {"source": source})
         return len(all_chunks)
 
