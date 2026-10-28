@@ -1,6 +1,6 @@
 from simple_embedder import SimpleEmbedder
 from index_with_brute_force import VectorIndex
-from chunking import chunk_text
+from chunking import chunk_text, chunk_by_sentences
 
 class SemanticSearchEngine:
     def __init__(self, chunk_size=200, overlap=50, embedder=None):
@@ -13,7 +13,7 @@ class SemanticSearchEngine:
         all_chunks = []
         all_sources = []
         for i, doc in enumerate(documents):
-            chunks = chunk_text(doc, self.chunk_size, self.overlap)
+            chunks = chunk_by_sentences(doc,self.chunk_size)
             all_chunks.extend(chunks)
             name = source_names[i] if source_names else f"doc_{i}"
             all_sources.extend([name] * len(chunks))
