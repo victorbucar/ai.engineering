@@ -1,6 +1,7 @@
 import sys
 from text_chunker import TextChunker
 from embedder_options import choose_embedder
+from generator_options import choose_generator
 from similarity import cosine_similarity
 from rag_pipeline import RAGPipeline
 from sample_documents import SAMPLE_DOCUMENTS, SOURCE_NAMES
@@ -8,7 +9,9 @@ from sample_documents import SAMPLE_DOCUMENTS, SOURCE_NAMES
 
 if __name__ == "__main__":
     Embedder = choose_embedder(sys.argv[1] if len(sys.argv) > 1 else None)
-    print(f"\nUsing embedder: {Embedder.name}\n")
+    generator_name, make_generator = choose_generator(sys.argv[2] if len(sys.argv) > 2 else None)
+    generator = make_generator()
+    print(f"\nUsing embedder: {Embedder.name}, generator: {generator_name}\n")
 
     print("=" * 60)
     print("STEP 1: Document Chunking")
@@ -64,19 +67,15 @@ if __name__ == "__main__":
     print("STEP 4: Full RAG Pipeline")
     print("=" * 60)
 
-    rag = RAGPipeline(chunk_size=50, overlap=10, top_k=3, embedder=Embedder())
+    rag = RAGPipeline(chunk_size=50, overlap=10, top_k=3, embedder=Embedder(), generator=generator)
     num_chunks = rag.index(SAMPLE_DOCUMENTS, SOURCE_NAMES)
     print(f"  Indexed {len(SAMPLE_DOCUMENTS)} documents into {num_chunks} chunks")
     if hasattr(rag.embedder, "vocab"):
         print(f"  Vocabulary size: {len(rag.embedder.vocab)} terms")
 
     queries = [
-        "What is the refund policy for enterprise customers?",
-        "What are the API rate limits?",
-        "How is customer data encrypted?",
-        "What happens if uptime falls below the SLA?",
-        "How much does the Professional plan cost?",
-        "What are the main programming languages in Victor Bucar CV?"
+        "What are the main programming languages in Victor Bucar CV?",
+        "Does Victor know node?"
     ]
 
     for query in queries:
@@ -94,7 +93,8 @@ if __name__ == "__main__":
 
     test_query = "What is the refund policy for enterprise customers?"
     for chunk_size in [20, 50, 100, 200]:
-        rag_test = RAGPipeline(chunk_size=chunk_size, overlap=max(5, chunk_size // 5), embedder=Embedder())
+        rag_test = RAGPipeline(chunk_size=chunk_size, overlap=max(5, chunk_size // 5),
+                               embedder=Embedder(), generator=generator)
         n = rag_test.index(SAMPLE_DOCUMENTS)
         result = rag_test.query(test_query, top_k=3)
         top_score = result["retrieved"][0]["score"] if result["retrieved"] else 0
