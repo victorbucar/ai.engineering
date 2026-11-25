@@ -1,0 +1,28 @@
+# Grade a real LLM with promptfoo: promptfoo sends each test question to the model,
+# then Claude Haiku 5.5 grades the answer with the shared rubric in promptfoo/judge.yaml.
+# Needs ANTHROPIC_API_KEY in the environment.
+#   npx promptfoo@latest eval -o promptfoo/results.json
+#   npx promptfoo@latest view
+description: Real model graded by Claude Haiku 5.5
+
+# System + user message; edit the system prompt here to test prompt changes.
+prompts:
+  - file://promptfoo/live_prompt.json
+
+# The model(s) being graded. List more than one to compare them side by side.
+# Keep the judge (Haiku) different from the graded model: models tend to grade
+# their own answers more generously.
+providers:
+  - id: anthropic:messages:claude-sonnet-5-5
+    label: sonnet-5.5
+    config:
+      max_tokens: 16000
+      showThinking: false  # grade only the final answer, not the thinking
+  # - id: <any other promptfoo provider id>
+
+defaultTest: file://promptfoo/judge.yaml
+
+tests: file://promptfoo/tests.yaml
+
+# Caching stays on, so re-runs reuse answers and grades whose inputs haven't changed.
+# Run with --no-cache to force fresh calls.
