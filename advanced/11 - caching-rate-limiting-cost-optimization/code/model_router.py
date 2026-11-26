@@ -2,7 +2,7 @@
 
 The classifier embeds the query and finds the nearest labeled example in routing_data.TRAIN_SET
 (k-nearest-neighbor, k=1 by default). No LLM call is involved: the embeddings are computed
-locally by the same sentence-transformer model the semantic cache uses.
+locally by embeddings.embed(), the same model the semantic cache uses.
 """
 
 import re
@@ -11,7 +11,7 @@ from collections import Counter
 import numpy as np
 
 from routing_data import TRAIN_SET
-from semantic_cache import embed
+from embeddings import embed
 
 LABELS = ("simple", "medium", "complex")
 

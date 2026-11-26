@@ -1,33 +1,12 @@
 import time
 
-import numpy as np
+from embeddings import cosine_similarity, embed
 
 # A bag-of-words "embedding" cannot match paraphrases ("store hours" vs "when do you open"),
-# so we use a real sentence-embedding model. all-mpnet-base-v2 separated paraphrases from
-# different-topic questions best on this demo's queries:
+# so we use a real sentence-embedding model (see embeddings.py). On this demo's queries:
 #   paraphrases 0.69-0.84, related-but-different topics (quantum computing vs mechanics) 0.68,
 #   unrelated questions < 0.35. Hence the 0.69 default threshold.
-EMBEDDING_MODEL = "all-mpnet-base-v2"
 DEFAULT_THRESHOLD = 0.69
-
-_model = None
-
-
-def _get_model():
-    global _model
-    if _model is None:
-        from sentence_transformers import SentenceTransformer
-        _model = SentenceTransformer(EMBEDDING_MODEL)
-    return _model
-
-
-def embed(text):
-    # Normalized vectors, so cosine similarity is a plain dot product.
-    return _get_model().encode(text, normalize_embeddings=True)
-
-
-def cosine_similarity(a, b):
-    return float(np.dot(a, b))
 
 
 class SemanticCache:
